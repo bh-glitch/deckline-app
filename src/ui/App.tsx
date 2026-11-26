@@ -3,7 +3,8 @@ import './styles.css';
 import type { DeckId, MixerEngine } from '../types';
 import { LibraryContext } from './context';
 import { getMixer, useToast } from './core';
-import { useDeckState, useMixerState } from './hooks';
+import { useDeckState, useIsMobile, useMixerState } from './hooks';
+import { MobileShell } from './mobile/MobileShell';
 import { useShortcuts } from './shortcuts';
 import { useLibrary } from '../library';
 import { Toolbar } from './Toolbar';
@@ -84,6 +85,7 @@ function Shell({ mixer }: { mixer: MixerEngine }) {
 
 export default function App() {
   const lib = useLibrary();
+  const mobile = useIsMobile();
   const boot = useMemo(() => {
     try { return { mixer: getMixer(), error: null as string | null }; }
     catch (e) { return { mixer: null, error: e instanceof Error ? e.message : String(e) }; }
@@ -91,7 +93,7 @@ export default function App() {
   if (!boot.mixer) return <div className="fatal">Deckline could not start the audio engine: {boot.error}</div>;
   return (
     <LibraryContext.Provider value={lib}>
-      <Shell mixer={boot.mixer} />
+      {mobile ? <MobileShell mixer={boot.mixer} /> : <Shell mixer={boot.mixer} />}
     </LibraryContext.Provider>
   );
 }

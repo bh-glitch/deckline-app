@@ -18,7 +18,7 @@ import { join } from 'node:path';
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export async function launch({ port = 9333, width = 1916, height = 933, dpr = 2, headless = true } = {}) {
+export async function launch({ port = 9333, width = 1916, height = 933, dpr = 2, headless = true, mobile = false } = {}) {
   const profile = mkdtempSync(join(process.env.TMPDIR || tmpdir(), 'cdp-'));
   const proc = spawn(CHROME, [
     headless ? '--headless=new' : '', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
@@ -46,7 +46,12 @@ export async function launch({ port = 9333, width = 1916, height = 933, dpr = 2,
   };
   const send = (method, params = {}) => new Promise((r, j) => { const i = ++id; pending.set(i, { r, j }); ws.send(JSON.stringify({ id: i, method, params })); });
   await send('Page.enable'); await send('Runtime.enable'); await send('DOM.enable');
-  await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: dpr, mobile: false });
+  await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: dpr, mobile: !!mobile });
+  if (mobile) {
+    await send('Network.enable');
+    await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    await send('Network.setUserAgentOverride', { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' }).catch(() => {});
+  }
 
   const api = {
     send, logs, sleep,
@@ -75,6 +80,22 @@ export async function launch({ port = 9333, width = 1916, height = 933, dpr = 2,
       const [x, y] = await api.center(selector);
       await api.mouse('mouseMoved', x, y); await api.mouse('mousePressed', x, y); await api.mouse('mouseReleased', x, y);
       await sleep(80);
+    },
+    /** Resize the emulated viewport (e.g. portrait -> landscape). Reload afterwards if layout is JS-driven. */
+    async setViewport(w, h, d = dpr) {
+      await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: d, mobile: !!mobile, screenOrientation: { type: w > h ? 'landscapePrimary' : 'portraitPrimary', angle: w > h ? 90 : 0 } });
+      await sleep(250);
+    },
+    /** Raw touch (requires mobile: true). type: touchStart | touchMove | touchEnd | touchCancel */
+    async touch(type, x, y) { await send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' || type === 'touchCancel' ? [] : [{ x, y, id: 1 }] }); },
+    async tap(selector) {
+      const [x, y] = await api.center(selector);
+      await api.touch('touchStart', x, y); await sleep(40); await api.touch('touchEnd', x, y); await sleep(120);
+    },
+    async touchDrag(x0, y0, x1, y1, steps = 12) {
+      await api.touch('touchStart', x0, y0);
+      for (let i = 1; i <= steps; i++) { await api.touch('touchMove', x0 + ((x1 - x0) * i) / steps, y0 + ((y1 - y0) * i) / steps); await sleep(16); }
+      await api.touch('touchEnd', x1, y1); await sleep(120);
     },
     async key(key, code = key) {
       await send('Input.dispatchKeyEvent', { type: 'keyDown', key, code }); await send('Input.dispatchKeyEvent', { type: 'keyUp', key, code });

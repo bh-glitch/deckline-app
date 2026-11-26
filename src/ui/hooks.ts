@@ -18,3 +18,17 @@ export function useMixerState(mixer: MixerEngine): MixerState {
   }, [mixer]);
   return s;
 }
+
+/** True below the desktop breakpoint (phones / small tablets). */
+export function useIsMobile(): boolean {
+  const q = '(max-width: 899px)';
+  const [m, set] = useState<boolean>(() => window.matchMedia(q).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(q);
+    const on = () => set(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return m;
+}

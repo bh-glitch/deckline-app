@@ -13,7 +13,7 @@ function rgba(hex: string, a: number) {
   return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
 }
 
-function ScrollRow({ deck, state }: { deck: DeckEngine; state: DeckState }) {
+export function ScrollRow({ deck, state }: { deck: DeckEngine; state: DeckState }) {
   const id = deck.id;
   const color = DECK_COLOR[id];
   const stRef = useRef(state);

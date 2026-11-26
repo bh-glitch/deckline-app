@@ -10,9 +10,15 @@ const SHORTCUTS: [string, string][] = [
   ['Space', 'Play / pause last-touched deck'], ['Sampler tab', '1234 qwer asdf zxcv = pads'],
 ];
 
-interface Props { mixer: MixerEngine; state: MixerState }
+const TIPS: [string, string][] = [
+  ['Decks', 'Play, cue, sync, tempo, loops and hot cues'], ['Mixer', 'EQ, filter, crossfader, auto transitions, FX'],
+  ['Library', 'Import audio, then load to A or B'], ['Hot cue', 'Tap to set or jump, long-press to delete'],
+  ['Knobs', 'Drag up / down, double-tap to reset'],
+];
 
-export function Toolbar({ mixer, state }: Props) {
+interface Props { mixer: MixerEngine; state: MixerState; mobile?: boolean }
+
+export function Toolbar({ mixer, state, mobile = false }: Props) {
   const [help, setHelp] = useState(false);
   const timeRef = useRef<HTMLSpanElement>(null);
   useFrame(() => {
@@ -53,7 +59,7 @@ export function Toolbar({ mixer, state }: Props) {
           <button className="btn small" onClick={() => setHelp((h) => !h)} aria-label="Keyboard shortcuts">?</button>
           {help && (
             <div className="help-pop" onClick={() => setHelp(false)}>
-              {SHORTCUTS.map(([k, d]) => <div key={k}><kbd>{k}</kbd><span>{d}</span></div>)}
+              {(mobile ? TIPS : SHORTCUTS).map(([k, d]) => <div key={k}><kbd>{k}</kbd><span>{d}</span></div>)}
             </div>
           )}
         </div>

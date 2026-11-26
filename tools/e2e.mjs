@@ -1,6 +1,6 @@
 import { launch } from './cdp.mjs';
 import { execSync } from 'node:child_process';
-const OUT = process.env.OUT_DIR || new URL('../.e2e-shots/', import.meta.url).pathname; (await import('node:fs')).mkdirSync(OUT, { recursive: true });
+const OUT = process.env.OUT_DIR || decodeURIComponent(new URL('../.e2e-shots/', import.meta.url).pathname); (await import('node:fs')).mkdirSync(OUT, { recursive: true });
 const D = (process.env.SONGS_DIR || process.argv[2] || '').replace(/\/?$/, '/'); if (D === '/') { console.error('Usage: SONGS_DIR=/path/to/songs node ' + process.argv[1]); process.exit(1); }
 const F = [D + 'abhi-toh-party-shuru-hui-hai-full-video-song-khoobsurat-badshah-sonam-kapoor-aastha-128-ytshorts.savetube.me.mp3', D + 'Saturday Saturday Humpty Sharma Ki Dulhania Varun Dhawan, Alia Bhatt Badshah, Akriti Kakkar 4K.mp3', D + 'I know I should sleep but the voices in my head go.mp3'];
 const only = process.argv[2];

@@ -8,8 +8,8 @@ import { Knob } from './Knob';
 import { VuMeter } from './VuMeter';
 import { DECK_COLOR } from './format';
 
-const pctFmt = (v: number) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}`;
-const eqFmt = (v: number) => (v <= -0.99 ? 'KILL' : `${v > 0 ? '+' : ''}${(v > 0 ? v * 6 : v * 24).toFixed(1)}dB`);
+export const pctFmt = (v: number) => `${v > 0 ? '+' : ''}${Math.round(v * 100)}`;
+export const eqFmt = (v: number) => (v <= -0.99 ? 'KILL' : `${v > 0 ? '+' : ''}${(v > 0 ? v * 6 : v * 24).toFixed(1)}dB`);
 
 function EqKnob({ deck, band, label }: { deck: DeckEngine; band: 'low' | 'mid' | 'high'; label: string }) {
   const st = useDeckState(deck);
@@ -52,7 +52,7 @@ const STYLES: { id: TransitionStyle; label: string }[] = [
   { id: 'filter', label: 'Filter' }, { id: 'cut', label: 'Cut' },
 ];
 
-function TransitionPanel({ mixer, state }: { mixer: MixerEngine; state: MixerState }) {
+export function TransitionPanel({ mixer, state }: { mixer: MixerEngine; state: MixerState }) {
   const tx = useTxSettings();
   const bar = useRef<HTMLDivElement>(null);
   const active = !!state.transition?.active;
